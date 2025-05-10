@@ -6,6 +6,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://billetto.dk/api/v3/public"
+BILLETTO_API_KEY = os.environ.get("BILLETTO_API_KEY") # Henter API-nøgle fra miljøvariabel
 
 def soeg_events(limit: int = 10, postal_code: str = None, macroregion: str = None,
                 region: str = None, subregion: str = None, organizer_id: str = None,
@@ -26,6 +27,9 @@ def soeg_events(limit: int = 10, postal_code: str = None, macroregion: str = Non
     params = {k: v for k, v in params.items() if v is not None}
     headers = {"accept": "application/json"}
 
+    if BILLETTO_API_KEY:
+        headers["API.keypair"] = BILLETTO_API_KEY
+
     try:
         response = requests.get(url, params=params, headers=headers)
         response.raise_for_status()
@@ -38,6 +42,10 @@ def hent_event(event_id: str):
     """Henter detaljer for et specifikt event fra Billetto."""
     url = f"{BASE_URL}/events/{event_id}"
     headers = {"accept": "application/json"}
+
+    if BILLETTO_API_KEY:
+        headers["API.keypair"] = BILLETTO_API_KEY
+
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
@@ -45,3 +53,6 @@ def hent_event(event_id: str):
     except requests.exceptions.RequestException as e:
         logger.error(f"Fejl ved hentning af event {event_id} fra Billetto API: {e}")
         return {"error": f"Fejl ved hentning af eventdetaljer: {e}"}
+
+# Du kan tilføje flere funktioner her til andre Billetto API endepunkter, hvis nødvendigt
+# Husk at inkludere API-nøglen i headeren for alle kald, der kræver autentificering.
